@@ -12,12 +12,9 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   DateTime selectedDate = DateTime.now();
-/*   String _dropdownValue = 'Todas';
- */
+  bool loadingData = true;
   String _dropdownSelectedValue = 'Todas';
-/*   List<TaskModel> filteredTaskList = [];
- */
-  List<DropdownMenuItem<String>> categories = [];
+
   final provider = TaskProvider();
 
   @override
@@ -27,38 +24,12 @@ class _HomePageState extends State<HomePage> {
     future.then(
       (value) {
         setState(() {
-          for (CategoryModel category in provider.categoryList) {
-            categories.add(DropdownMenuItem(
-                value: category.value, child: Text(category.text)));
-          }
           provider.filteredTaskList = provider.taskList;
-          //loadingData = false;
+          loadingData = false;
         });
       },
     );
   }
-
-  /* void _dropdownCallback(String? selectedValue) {
-    if (selectedValue is String) {
-      setState(() {
-        _dropdownValue = selectedValue;
-        if (selectedValue == 'Todas') {
-          filteredTaskList = provider.taskList;
-        } else {
-          filteredTaskList = provider.taskList.where((task) {
-            return task.category.contains(selectedValue);
-          }).toList();
-        }
-      });
-    }
-  } */
-
-  /*  void _testAtt(TaskModel newTask) {
-    setState(() {
-      taskList.clear();
-      taskList = FirebaseConection.tasksProvider;
-    });
-  } */
 
   TextEditingController textEditingControllerTaskTitle =
       TextEditingController();
@@ -82,15 +53,68 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Widget dueDateCheck(TaskModel task) {
+    if (task.dueDate.isBefore(DateTime.now())) {
+      return const Text('Tarefa expirada');
+    } else {
+      if (task.dueDate.difference(DateTime.now()).inDays <= 5) {
+        return const Text('Expiração próxima');
+      } else {
+        return Text(
+            'Prazo: ${task.dueDate.day}/${task.dueDate.month}/${task.dueDate.year}');
+      }
+    }
+  }
+
+  Widget bodyTask() {
+    if (loadingData == true) {
+      return const Center(
+          child: CircularProgressIndicator(
+        color: Colors.white,
+      ));
+    } else {
+      return Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(30.0), topRight: Radius.circular(30.0)),
+        ),
+        child: Column(
+          children: [
+            DropdownButton(
+              hint: const Text('Filtrar categoria'),
+              dropdownColor: const Color.fromARGB(255, 226, 228, 207),
+              iconEnabledColor: const Color.fromARGB(255, 189, 197, 125),
+              style: const TextStyle(
+                  color: Color.fromARGB(255, 26, 30, 0), fontSize: 16.5),
+              iconSize: 42,
+              value: provider.dropdownValue,
+              items: provider.dropdownCategoriesList,
+              onChanged: provider.dropdownCallback,
+              isDense: true,
+              underline: DecoratedBox(
+                  decoration: BoxDecoration(
+                      border:
+                          Border.all(color: Theme.of(context).primaryColor))),
+            ),
+            Expanded(
+                child: Padding(
+                    padding: const EdgeInsets.only(top: 21.0),
+                    child: taskOrAdd()))
+          ],
+        ),
+      );
+    }
+  }
+
   Widget taskOrAdd() {
     if (provider.tasksIsEmpty) {
       return const Center(
-          child: Text(
-        'Adicione sua primeira tarefa!',
-        style: TextStyle(
-            decorationStyle: TextDecorationStyle.dotted,
-            decoration: TextDecoration.underline),
-      ));
+          child: Text('Adicione sua primeira tarefa! ⭐',
+              style: TextStyle(
+                fontSize: 18,
+                color: Color.fromARGB(150, 26, 30, 0),
+              )));
     } else {
       return ListView.builder(
           itemCount: provider.filteredTaskList.length,
@@ -130,7 +154,7 @@ class _HomePageState extends State<HomePage> {
                               ),
                               DropdownButton(
                                 value: _dropdownSelectedValue,
-                                items: categories,
+                                items: provider.dropdownCategoriesList,
                                 onChanged: (selectedValue) {
                                   if (selectedValue is String) {
                                     setState(() {
@@ -177,40 +201,8 @@ class _HomePageState extends State<HomePage> {
                                   task.dueDate = selectedDate;
                                   task.category = _dropdownSelectedValue;
 
-                                  /* task.copyWith(
-                                                  id: task.id,
-                                                  title:
-                                                      textEditingControllerTaskTitle
-                                                          .text,
-                                                  description:
-                                                      textEditingControllerTaskDescription
-                                                          .text,
-                                                  dueDate: selectedDate,
-                                                  isCompleted: task.isCompleted,
-                                                  category:
-                                                      _dropdownSelectedValue); */
-                                  /* TaskModel updatedTask = TaskModel(
-                                                  id: task.id,
-                                                  title:
-                                                      textEditingControllerTaskTitle
-                                                          .text,
-                                                  description:
-                                                      textEditingControllerTaskDescription
-                                                          .text,
-                                                  dueDate: selectedDate,
-                                                  isCompleted: task.isCompleted,
-                                                  category:
-                                                      _dropdownSelectedValue); */
                                   Navigator.of(context).pop();
                                   setState(() {
-                                    /* provider.taskList[provider
-                                                    .taskList
-                                                    .indexWhere(
-                                                  (element) {
-                                                    return task.id ==
-                                                        element.id;
-                                                  },
-                                                )] = task; */
                                     provider.updateTask(task);
                                   });
                                 }
@@ -233,22 +225,13 @@ class _HomePageState extends State<HomePage> {
                   onChanged: (isChecked) {
                     task.isCompleted = isChecked!;
                     setState(() {
-                      /* provider
-                                      .taskList[provider.taskList.indexWhere(
-                                    (element) {
-                                      return task.id == element.id;
-                                    },
-                                  )] = task; */
                       provider.checked(task);
                     });
                   },
                 ),
               ),
               title: Text(task.title),
-              subtitle: Text(
-                  (task.dueDate.difference(DateTime.now()).inDays <= 5)
-                      ? 'Validade próxima'
-                      : ''),
+              subtitle: dueDateCheck(task),
               trailing: IconButton(
                   onPressed: () {
                     setState(() {
@@ -310,7 +293,10 @@ class _HomePageState extends State<HomePage> {
                 ListTile(
                   title: const Text("Criar nova categoria"),
                   leading: const Icon(Icons.add_outlined),
-                  trailing: const Icon(Icons.arrow_forward_ios_outlined),
+                  trailing: const Icon(
+                    Icons.arrow_forward_ios_outlined,
+                    size: 18,
+                  ),
                   onTap: () {
                     showDialog(
                       context: context,
@@ -334,15 +320,10 @@ class _HomePageState extends State<HomePage> {
                             TextButton(
                                 onPressed: () {
                                   CategoryModel newCategory = CategoryModel(
+                                      id: DateTime.now().toString(),
                                       value: textEditingControllerCategory.text,
                                       text: textEditingControllerCategory.text);
                                   provider.saveNewCategory(newCategory);
-                                  /* setState(() {
-                                    categories.add(DropdownMenuItem(
-                                      value: newCategory.value,
-                                      child: Text(newCategory.text),
-                                    ));
-                                  }); */
                                   textEditingControllerCategory.clear();
                                   Navigator.of(context).pop();
                                 },
@@ -352,42 +333,59 @@ class _HomePageState extends State<HomePage> {
                       },
                     );
                   },
+                ),
+                ListTile(
+                  title: const Text("Remover categoria"),
+                  leading: const Icon(
+                    Icons.remove_circle_outline_outlined,
+                  ),
+                  trailing:
+                      const Icon(Icons.arrow_forward_ios_outlined, size: 18),
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          title: const Text("Lista de categorias"),
+                          content: SizedBox(
+                            height: 300,
+                            width: 300,
+                            child: ListView.builder(
+                              itemCount: provider.categoryList.length,
+                              itemBuilder: (context, index) {
+                                CategoryModel categoryModel =
+                                    provider.categoryList[index];
+                                return ListTile(
+                                  title: Text(categoryModel.value),
+                                  trailing: IconButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          provider
+                                              .removeCategory(categoryModel);
+                                        });
+                                      },
+                                      icon: const Icon(
+                                          Icons.delete_outline_rounded)),
+                                );
+                              },
+                            ),
+                          ),
+                          actions: [
+                            TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: const Text("Fechar"))
+                          ],
+                        );
+                      },
+                    );
+                  },
                 )
               ],
             ),
           ),
-          body: Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(30.0),
-                  topRight: Radius.circular(30.0)),
-            ),
-            child: Column(
-              children: [
-                DropdownButton(
-                  hint: const Text('Filtrar categoria'),
-                  dropdownColor: const Color.fromARGB(255, 225, 231, 174),
-                  iconEnabledColor: const Color.fromARGB(255, 223, 233, 149),
-                  style: const TextStyle(
-                      color: Color.fromARGB(255, 26, 30, 0), fontSize: 16.5),
-                  iconSize: 42,
-                  value: provider.dropdownValue,
-                  items: categories,
-                  onChanged: provider.dropdownCallback,
-                  isDense: true,
-                  underline: DecoratedBox(
-                      decoration: BoxDecoration(
-                          border: Border.all(
-                              color: Theme.of(context).primaryColor))),
-                ),
-                Expanded(
-                    child: Padding(
-                        padding: const EdgeInsets.only(top: 21.0),
-                        child: taskOrAdd()))
-              ],
-            ),
-          ),
+          body: bodyTask(),
           floatingActionButton: FloatingActionButton(
             //Criar tarefa
             onPressed: () {
@@ -417,7 +415,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                             DropdownButton(
                                 value: _dropdownSelectedValue,
-                                items: categories,
+                                items: provider.dropdownCategoriesList,
                                 onChanged: (value) {
                                   setState(
                                     () {
@@ -463,13 +461,12 @@ class _HomePageState extends State<HomePage> {
                                             .text,
                                     dueDate: selectedDate,
                                     category: _dropdownSelectedValue);
-                                setState(
-                                  () {
-                                    provider.saveNewTask(newTask);
-                                  },
-                                );
+                                /* setState(
+                                  () { */
+                                provider.saveNewTask(newTask);
+                                /* },
+                                ); */
                                 Navigator.of(context).pop();
-                                //_testAtt(newTask);
                               }
                               textEditingControllerTaskTitle.clear();
                               textEditingControllerTaskDescription.clear();

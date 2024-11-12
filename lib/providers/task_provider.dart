@@ -10,6 +10,7 @@ import 'package:to_do_list/models/task_model.dart';
 class TaskProvider extends ChangeNotifier {
   List<TaskModel> taskList = [];
   List<CategoryModel> categoryList = [];
+  List<DropdownMenuItem<String>> dropdownCategoriesList = [];
   List<TaskModel> filteredTaskList = [];
   String dropdownValue = 'Todas';
   bool tasksIsEmpty = false;
@@ -38,18 +39,25 @@ class TaskProvider extends ChangeNotifier {
   }
 
   Future<void> loadCategorys() async {
+    categoryList.clear();
+    dropdownCategoriesList.clear();
     final response = await http.get(Uri.parse('${url}categorys.json'));
     final data = jsonDecode(response.body);
     data.forEach((key, data) {
+      data['id'] = key;
       categoryList.add(CategoryModel.fromMap(data));
     });
+    for (CategoryModel category in categoryList) {
+      dropdownCategoriesList.add(
+          DropdownMenuItem(value: category.value, child: Text(category.text)));
+    }
     notifyListeners();
   }
 
   Future<void> saveNewTask(TaskModel newTask) async {
     await http.post(Uri.parse('${url}tasks.json'), body: newTask.toJson());
-    loadTasks();
-    //notifyListeners();
+    await loadTasks();
+    dropdownCallback(newTask.category);
   }
 
   Future<void> updateTask(TaskModel taskModel) async {
@@ -60,20 +68,17 @@ class TaskProvider extends ChangeNotifier {
         return taskModel.id == element.id;
       },
     )] = taskModel;
-    //loadTasks();
     notifyListeners();
   }
 
   Future<void> checked(TaskModel taskModel) async {
     await http.patch(Uri.parse('${url}tasks/${taskModel.id}.json'),
         body: taskModel.toJson());
-
-/*     loadTasks();
- */
   }
 
-  void saveNewCategory(CategoryModel categoryModel) {
-    http.post(Uri.parse('${url}categorys.json'), body: categoryModel.toJson());
+  Future<void> saveNewCategory(CategoryModel categoryModel) async {
+    await http.post(Uri.parse('${url}categorys.json'),
+        body: categoryModel.toJson());
     loadCategorys();
   }
 
@@ -95,9 +100,11 @@ class TaskProvider extends ChangeNotifier {
   Future<void> removeTask(TaskModel taskModel) async {
     await http.delete(Uri.parse('${url}tasks/${taskModel.id}.json'));
     loadTasks();
-    /* taskList
-        .removeAt(taskList.indexWhere((element) => element.id == taskModel.id)); */
-    //notifyListeners();
+  }
+
+  Future<void> removeCategory(CategoryModel categoryModel) async {
+    await http.delete(Uri.parse('${url}categorys/${categoryModel.id}.json'));
+    loadCategorys();
   }
 
   Future<void> removeAllTasks() async {

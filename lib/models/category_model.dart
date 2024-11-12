@@ -1,18 +1,22 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 
 class CategoryModel {
+  String id;
   String value;
   String text;
   CategoryModel({
+    required this.id,
     required this.value,
     required this.text,
   });
 
   @override
-  String toString() => 'CategoryModel(value: $value, text: $text)';
+  String toString() => 'CategoryModel(id: $id, value: $value, text: $text)';
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
+      'id': id,
       'value': value,
       'text': text,
     };
@@ -20,6 +24,7 @@ class CategoryModel {
 
   factory CategoryModel.fromMap(Map<String, dynamic> map) {
     return CategoryModel(
+      id: map['id'] as String,
       value: map['value'] as String,
       text: map['text'] as String,
     );

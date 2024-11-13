@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
       title: 'To do list',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color.fromARGB(255, 229, 255, 0)),
+            seedColor: const Color.fromARGB(255, 245, 0, 184)),
         useMaterial3: true,
       ),
       home: const HomePage(),

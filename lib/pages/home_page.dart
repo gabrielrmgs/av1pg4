@@ -57,28 +57,31 @@ class _HomePageState extends State<HomePage> {
     if (task.isCompleted) {
       return const Text(
         'Tarefa concluída! ✨',
-        style: TextStyle(fontSize: 12),
-      );
-    }
-    if (task.dueDate
-            .isBefore(DateTime.now().subtract(const Duration(days: 1))) &&
-        task.isCompleted == false) {
-      return const Text(
-        'Tarefa expirada',
-        style: TextStyle(fontSize: 12),
+        style: TextStyle(fontSize: 12.9),
       );
     } else {
-      if (task.dueDate.difference(DateTime.now()).inDays <= 5 &&
+      if (task.dueDate.day == DateTime.now().day - 1 &&
           task.isCompleted == false) {
-        return const Text(
-          'Expiração próxima',
-          style: TextStyle(fontSize: 12),
+        return Text(
+          'Tarefa expirada dia: ${task.dueDate.day}/${task.dueDate.month}',
+          style: const TextStyle(fontSize: 12.9),
         );
       } else {
-        return Text(
-          'Prazo: ${task.dueDate.day}/${task.dueDate.month}/${task.dueDate.year}',
-          style: TextStyle(fontSize: 12),
-        );
+        if (task.isCompleted == false &&
+            task.dueDate.day == DateTime.now().day) {
+          return Text('Hoje, dia ${task.dueDate.day}/${task.dueDate.month}',
+              style: const TextStyle(fontSize: 12.9));
+        } else {
+          if (task.dueDate.day == DateTime.now().day + 1) {
+            return Text('Amanhã, dia ${task.dueDate.day}/${task.dueDate.month}',
+                style: const TextStyle(fontSize: 12.9));
+          } else {
+            return Text(
+              '${task.dueDate.day}/${task.dueDate.month}/${task.dueDate.year}',
+              style: const TextStyle(fontSize: 12.9),
+            );
+          }
+        }
       }
     }
   }

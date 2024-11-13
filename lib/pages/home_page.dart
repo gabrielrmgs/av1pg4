@@ -54,14 +54,31 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget dueDateCheck(TaskModel task) {
-    if (task.dueDate.isBefore(DateTime.now())) {
-      return const Text('Tarefa expirada');
+    if (task.isCompleted) {
+      return const Text(
+        'Tarefa concluída! ✨',
+        style: TextStyle(fontSize: 12),
+      );
+    }
+    if (task.dueDate
+            .isBefore(DateTime.now().subtract(const Duration(days: 1))) &&
+        task.isCompleted == false) {
+      return const Text(
+        'Tarefa expirada',
+        style: TextStyle(fontSize: 12),
+      );
     } else {
-      if (task.dueDate.difference(DateTime.now()).inDays <= 5) {
-        return const Text('Expiração próxima');
+      if (task.dueDate.difference(DateTime.now()).inDays <= 5 &&
+          task.isCompleted == false) {
+        return const Text(
+          'Expiração próxima',
+          style: TextStyle(fontSize: 12),
+        );
       } else {
         return Text(
-            'Prazo: ${task.dueDate.day}/${task.dueDate.month}/${task.dueDate.year}');
+          'Prazo: ${task.dueDate.day}/${task.dueDate.month}/${task.dueDate.year}',
+          style: TextStyle(fontSize: 12),
+        );
       }
     }
   }
@@ -127,6 +144,7 @@ class _HomePageState extends State<HomePage> {
                 textEditingControllerDate.text =
                     task.dueDate.toString().split(" ")[0];
                 _dropdownSelectedValue = task.category;
+                selectedDate = task.dueDate;
                 showDialog(
                   context: context,
                   builder: (context) {
@@ -138,6 +156,7 @@ class _HomePageState extends State<HomePage> {
                           child: Column(
                             children: [
                               TextField(
+                                maxLength: 15,
                                 controller: textEditingControllerTaskTitle,
                                 decoration: const InputDecoration(
                                     labelText: 'Título',
@@ -216,7 +235,7 @@ class _HomePageState extends State<HomePage> {
                   },
                 );
               },
-              leading: Transform.scale(
+              /* leading: Transform.scale(
                 scale: 1.5,
                 child: Checkbox(
                   shape: RoundedRectangleBorder(
@@ -229,17 +248,62 @@ class _HomePageState extends State<HomePage> {
                     });
                   },
                 ),
+              ), */
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Transform.scale(
+                    scale: 1.5,
+                    child: Checkbox(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6)),
+                      value: task.isCompleted,
+                      onChanged: (isChecked) {
+                        task.isCompleted = isChecked!;
+                        setState(() {
+                          provider.checked(task);
+                        });
+                      },
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(task.title),
+                      dueDateCheck(task),
+                    ],
+                  ),
+                  Expanded(
+                    child: Text(
+                      textAlign: TextAlign.end,
+                      overflow: TextOverflow.clip,
+                      task.category.toLowerCase(),
+                      style: const TextStyle(
+                        fontSize: 13.2,
+                        color: Color.fromARGB(150, 26, 30, 0),
+                      ),
+                    ),
+                  )
+                ],
               ),
-              title: Text(task.title),
-              subtitle: dueDateCheck(task),
-              trailing: IconButton(
+              //subtitle: dueDateCheck(task),
+              trailing: FloatingActionButton(
+                  mini: true,
+                  elevation: 3.3,
+                  /* style: const ButtonStyle(
+                      fixedSize: WidgetStatePropertyAll(Size.fromWidth(50)),
+                      shape: WidgetStatePropertyAll(
+                          CircleBorder(eccentricity: 0.1))), */
                   onPressed: () {
                     setState(() {
                       provider.taskList.remove(task);
                     });
                     provider.removeTask(task);
                   },
-                  icon: const Icon(Icons.delete_outline_rounded)),
+                  child: const Icon(
+                    Icons.delete_outline_rounded,
+                    size: 24,
+                  )),
             );
           });
     }
@@ -389,6 +453,7 @@ class _HomePageState extends State<HomePage> {
           floatingActionButton: FloatingActionButton(
             //Criar tarefa
             onPressed: () {
+              selectedDate = DateTime.now();
               textEditingControllerDate.clear();
               showDialog(
                 context: context,
@@ -401,6 +466,7 @@ class _HomePageState extends State<HomePage> {
                         child: Column(
                           children: [
                             TextField(
+                              maxLength: 15,
                               controller: textEditingControllerTaskTitle,
                               decoration: const InputDecoration(
                                   labelText: 'Título',

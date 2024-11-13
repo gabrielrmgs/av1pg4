@@ -324,9 +324,10 @@ class _HomePageState extends State<HomePage> {
                   onPressed: () {
                     provider.confirmRemoveTask(context).then((value) {
                       if (value == true) {
-                        setState(() {
-                          provider.taskList.remove(task);
-                          provider.removeTask(task);
+                        // setState(() {
+                        // provider.taskList.remove(task);
+                        provider.removeTask(task);
+                        if (context.mounted) {
                           ScaffoldMessenger.of(context).hideCurrentSnackBar();
                           ScaffoldMessenger.of(context)
                               .showSnackBar(const SnackBar(
@@ -335,7 +336,8 @@ class _HomePageState extends State<HomePage> {
                             duration: Duration(seconds: 3),
                             showCloseIcon: true,
                           ));
-                        });
+                        }
+                        //});
                       }
                     });
                   },
@@ -391,6 +393,7 @@ class _HomePageState extends State<HomePage> {
                         if (value == true) {
                           setState(() {
                             provider.removeAllTasks();
+                            Navigator.of(context).pop();
                             ScaffoldMessenger.of(context)
                                 .showSnackBar(const SnackBar(
                               content: Text('Tarefas excluídas com sucesso!'),

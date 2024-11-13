@@ -58,7 +58,7 @@ class TaskProvider extends ChangeNotifier {
   Future<void> saveNewTask(TaskModel newTask) async {
     await http.post(Uri.parse('${url}tasks.json'), body: newTask.toJson());
     await loadTasks();
-    dropdownCallback(newTask.category);
+    dropdownCallback('Todas');
   }
 
   Future<void> updateTask(TaskModel taskModel) async {
@@ -69,6 +69,7 @@ class TaskProvider extends ChangeNotifier {
         return taskModel.id == element.id;
       },
     )] = taskModel;
+    dropdownCallback('Todas');
     notifyListeners();
   }
 
@@ -100,7 +101,8 @@ class TaskProvider extends ChangeNotifier {
 
   Future<void> removeTask(TaskModel taskModel) async {
     await http.delete(Uri.parse('${url}tasks/${taskModel.id}.json'));
-    loadTasks();
+    taskList.remove(taskModel);
+    dropdownCallback('Todas');
   }
 
   Future confirmRemoveCategory(BuildContext context) async {

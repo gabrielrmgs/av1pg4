@@ -148,6 +148,29 @@ class TaskProvider extends ChangeNotifier {
             ));
   }
 
+  Future confirmRemoveAllTasks(BuildContext context) async {
+    return showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+              content: const Text(
+                  "Esta ação irá excluir todas as tarefas cadastradas!\nDeseja realmente prosseguir?"),
+              title: const Text('Excluir TODAS as tarefas'),
+              actionsAlignment: MainAxisAlignment.spaceBetween,
+              actions: [
+                TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(false);
+                    },
+                    child: const Text('Não')),
+                TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(true);
+                    },
+                    child: const Text('Sim'))
+              ],
+            ));
+  }
+
   Future<void> removeCategory(CategoryModel categoryModel) async {
     for (TaskModel task in taskList) {
       if (task.category == categoryModel.value) {

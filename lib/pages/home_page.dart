@@ -386,11 +386,26 @@ class _HomePageState extends State<HomePage> {
                   title: const Text("Remover todas as tarefas"),
                   leading: const Icon(Icons.delete_outline_rounded),
                   onTap: () {
-                    provider.removeAllTasks();
+                    provider.confirmRemoveAllTasks(context).then(
+                      (value) {
+                        if (value == true) {
+                          setState(() {
+                            provider.removeAllTasks();
+                            ScaffoldMessenger.of(context)
+                                .showSnackBar(const SnackBar(
+                              content: Text('Tarefas excluídas com sucesso!'),
+                              behavior: SnackBarBehavior.floating,
+                              duration: Duration(seconds: 3),
+                              showCloseIcon: true,
+                              dismissDirection: DismissDirection.endToStart,
+                            ));
+                          });
+                        }
+                      },
+                    );
                     /* setState(() {
                     taskList.clear();
                   }); */
-                    Navigator.of(context).pop();
                   },
                 ),
                 ListTile(
@@ -429,6 +444,19 @@ class _HomePageState extends State<HomePage> {
                                   provider.saveNewCategory(newCategory);
                                   textEditingControllerCategory.clear();
                                   Navigator.of(context).pop();
+                                  Navigator.of(context).pop();
+                                  ScaffoldMessenger.of(context)
+                                      .hideCurrentSnackBar();
+                                  ScaffoldMessenger.of(context)
+                                      .showSnackBar(SnackBar(
+                                    content: Text(
+                                        'Categoria "${newCategory.value}" criada com sucesso!'),
+                                    behavior: SnackBarBehavior.floating,
+                                    dismissDirection:
+                                        DismissDirection.endToStart,
+                                    duration: const Duration(seconds: 3),
+                                    showCloseIcon: true,
+                                  ));
                                 },
                                 child: const Text("Salvar"))
                           ],

@@ -255,16 +255,43 @@ class _HomePageState extends State<HomePage> {
                   Transform.scale(
                     scale: 1.5,
                     child: Checkbox(
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(6)),
-                      value: task.isCompleted,
-                      onChanged: (isChecked) {
-                        task.isCompleted = isChecked!;
-                        setState(() {
-                          provider.checked(task);
-                        });
-                      },
-                    ),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(6)),
+                        value: task.isCompleted,
+                        onChanged: (isChecked) {
+                          task.isCompleted = isChecked!;
+                          if (isChecked == true) {
+                            setState(() {
+                              provider.checked(task);
+                              ScaffoldMessenger.of(context)
+                                  .hideCurrentSnackBar();
+                              ScaffoldMessenger.of(context)
+                                  .showSnackBar(const SnackBar(
+                                content: Text('Tarefa concluída! 👏'),
+                                duration: Duration(seconds: 2),
+                                showCloseIcon: true,
+                                clipBehavior: Clip.antiAliasWithSaveLayer,
+                                behavior: SnackBarBehavior.floating,
+                                hitTestBehavior: HitTestBehavior.opaque,
+                              ));
+                            });
+                          } else {
+                            setState(() {
+                              provider.checked(task);
+                              ScaffoldMessenger.of(context)
+                                  .hideCurrentSnackBar();
+                              ScaffoldMessenger.of(context)
+                                  .showSnackBar(const SnackBar(
+                                content: Text('Tarefa desmarcada!'),
+                                duration: Duration(seconds: 2),
+                                showCloseIcon: true,
+                                clipBehavior: Clip.antiAliasWithSaveLayer,
+                                behavior: SnackBarBehavior.floating,
+                                hitTestBehavior: HitTestBehavior.opaque,
+                              ));
+                            });
+                          }
+                        }),
                   ),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -295,10 +322,22 @@ class _HomePageState extends State<HomePage> {
                       shape: WidgetStatePropertyAll(
                           CircleBorder(eccentricity: 0.1))), */
                   onPressed: () {
-                    setState(() {
-                      provider.taskList.remove(task);
+                    provider.confirmRemoveTask(context).then((value) {
+                      if (value == true) {
+                        setState(() {
+                          provider.taskList.remove(task);
+                          provider.removeTask(task);
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(const SnackBar(
+                            content: Text('Tarefa removida!'),
+                            behavior: SnackBarBehavior.floating,
+                            duration: Duration(seconds: 3),
+                            showCloseIcon: true,
+                          ));
+                        });
+                      }
                     });
-                    provider.removeTask(task);
                   },
                   child: const Icon(
                     Icons.delete_outline_rounded,
@@ -424,16 +463,9 @@ class _HomePageState extends State<HomePage> {
                                   trailing: IconButton(
                                       onPressed: () {
                                         _dropdownSelectedValue = 'Todas';
-                                        /* provider.removeCategory(categoryModel);
-                                        Navigator.of(context).pop();
-                                        Navigator.of(context).pop();
-                                        ScaffoldMessenger.of(context)
-                                            .hideCurrentSnackBar();
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(const SnackBar(
-                                                content: Text(
-                                                    'Categoria e tarefas relacionadas excluídas!'))); */
-                                        provider.removeAction(context).then(
+                                        provider
+                                            .confirmRemoveCategory(context)
+                                            .then(
                                           (value) {
                                             if (value == true) {
                                               setState(() {
@@ -446,12 +478,32 @@ class _HomePageState extends State<HomePage> {
 
                                                   Navigator.of(context).pop();
                                                   Navigator.of(context).pop();
+                                                  /* ScaffoldMessenger.of(context)
+                                                      .hideCurrentSnackBar(); */
                                                   ScaffoldMessenger.of(context)
-                                                      .hideCurrentSnackBar();
+                                                      .showSnackBar(
+                                                          const SnackBar(
+                                                    content: Text(
+                                                        'Categoria e tarefas relacionadas excluídas!'),
+                                                    behavior: SnackBarBehavior
+                                                        .floating,
+                                                    duration:
+                                                        Duration(seconds: 3),
+                                                    showCloseIcon: true,
+                                                  ));
+                                                } else {
+                                                  Navigator.of(context).pop();
+                                                  Navigator.of(context).pop();
                                                   ScaffoldMessenger.of(context)
-                                                      .showSnackBar(const SnackBar(
-                                                          content: Text(
-                                                              'Categoria e tarefas relacionadas excluídas!')));
+                                                      .showSnackBar(
+                                                          const SnackBar(
+                                                    content: Text(
+                                                        'A categoria "Todas" NÃO pode ser removida! ⚠️'),
+                                                    behavior: SnackBarBehavior
+                                                        .floating,
+                                                    duration:
+                                                        Duration(seconds: 3),
+                                                  ));
                                                 }
                                               });
                                             } else {
@@ -567,6 +619,15 @@ class _HomePageState extends State<HomePage> {
                                 /* },
                                 ); */
                                 Navigator.of(context).pop();
+                                ScaffoldMessenger.of(context)
+                                    .hideCurrentSnackBar();
+                                ScaffoldMessenger.of(context)
+                                    .showSnackBar(const SnackBar(
+                                  content: Text('Tarefa salva com sucesso!'),
+                                  duration: Duration(seconds: 3),
+                                  showCloseIcon: true,
+                                  behavior: SnackBarBehavior.floating,
+                                ));
                               }
                               textEditingControllerTaskTitle.clear();
                               textEditingControllerTaskDescription.clear();

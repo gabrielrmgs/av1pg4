@@ -103,13 +103,35 @@ class TaskProvider extends ChangeNotifier {
     loadTasks();
   }
 
-  Future removeAction(BuildContext context) async {
+  Future confirmRemoveCategory(BuildContext context) async {
     return showDialog(
         context: context,
         builder: (context) => AlertDialog(
               content: const Text(
                   "Ao excluir uma categoria, todas as tarefas relacionadas a ela também serão excluídas!\n\nDeseja prosseguir?"),
               title: const Text('Atenção! ⚠️'),
+              actionsAlignment: MainAxisAlignment.spaceBetween,
+              actions: [
+                TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(false);
+                    },
+                    child: const Text('Não')),
+                TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(true);
+                    },
+                    child: const Text('Sim'))
+              ],
+            ));
+  }
+
+  Future confirmRemoveTask(BuildContext context) async {
+    return showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+              content: const Text("Deseja prosseguir?"),
+              title: const Text('Excluir tarefa'),
               actionsAlignment: MainAxisAlignment.spaceBetween,
               actions: [
                 TextButton(

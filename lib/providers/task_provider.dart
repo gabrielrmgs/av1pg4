@@ -20,6 +20,7 @@ class TaskProvider extends ChangeNotifier {
   Future<void> loadData() async {
     await loadCategorys();
     await loadTasks();
+    notifyListeners();
   }
 
   Future<void> loadTasks() async {
@@ -102,8 +103,37 @@ class TaskProvider extends ChangeNotifier {
     loadTasks();
   }
 
+  Future removeAction(BuildContext context) async {
+    return showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+              content: const Text(
+                  "Ao excluir uma categoria, todas as tarefas relacionadas a ela também serão excluídas!\n\nDeseja prosseguir?"),
+              title: const Text('Atenção! ⚠️'),
+              actionsAlignment: MainAxisAlignment.spaceBetween,
+              actions: [
+                TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(false);
+                    },
+                    child: const Text('Não')),
+                TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(true);
+                    },
+                    child: const Text('Sim'))
+              ],
+            ));
+  }
+
   Future<void> removeCategory(CategoryModel categoryModel) async {
+    for (TaskModel task in taskList) {
+      if (task.category == categoryModel.value) {
+        removeTask(task);
+      }
+    }
     await http.delete(Uri.parse('${url}categorys/${categoryModel.id}.json'));
+    dropdownCallback('Todas');
     loadCategorys();
   }
 

@@ -423,10 +423,44 @@ class _HomePageState extends State<HomePage> {
                                   title: Text(categoryModel.value),
                                   trailing: IconButton(
                                       onPressed: () {
-                                        setState(() {
-                                          provider
-                                              .removeCategory(categoryModel);
-                                        });
+                                        _dropdownSelectedValue = 'Todas';
+                                        /* provider.removeCategory(categoryModel);
+                                        Navigator.of(context).pop();
+                                        Navigator.of(context).pop();
+                                        ScaffoldMessenger.of(context)
+                                            .hideCurrentSnackBar();
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(const SnackBar(
+                                                content: Text(
+                                                    'Categoria e tarefas relacionadas excluídas!'))); */
+                                        provider.removeAction(context).then(
+                                          (value) {
+                                            if (value == true) {
+                                              setState(() {
+                                                if (categoryModel.value !=
+                                                    'Todas') {
+                                                  provider.removeCategory(
+                                                      categoryModel);
+                                                  textEditingControllerCategory
+                                                      .clear();
+
+                                                  Navigator.of(context).pop();
+                                                  Navigator.of(context).pop();
+                                                  ScaffoldMessenger.of(context)
+                                                      .hideCurrentSnackBar();
+                                                  ScaffoldMessenger.of(context)
+                                                      .showSnackBar(const SnackBar(
+                                                          content: Text(
+                                                              'Categoria e tarefas relacionadas excluídas!')));
+                                                }
+                                              });
+                                            } else {
+                                              if (context.mounted) {
+                                                Navigator.of(context).pop();
+                                              }
+                                            }
+                                          },
+                                        );
                                       },
                                       icon: const Icon(
                                           Icons.delete_outline_rounded)),
